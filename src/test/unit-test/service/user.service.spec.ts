@@ -113,7 +113,7 @@ describe('AuthService', () => {
           iat: expect.any(Number),
         },
         'test-secret',
-        { expiresIn: '7d' }
+        { expiresIn: '24h' }
       );
       expect(result).toEqual({
         access_token: 'jwt-token',
