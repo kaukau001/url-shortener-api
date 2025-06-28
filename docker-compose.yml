@@ -1,0 +1,59 @@
+services:
+  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+  #                          Postgres                                  #
+  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+  postgres:
+    image: postgres:15-alpine
+    container_name: url-shortener-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: url_shortener
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - url-shortener-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d url_shortener" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+  #                             API                                    #
+  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url-shortener-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=prd
+      - DATABASE_URL=postgresql://admin:admin@postgres:5432/url_shortener
+      - JWT_SECRET=your-super-secret-jwt-key-for-production
+      - JWT_EXPIRES_IN=7d
+      - PORT=3000
+      - BASE_URL=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - url-shortener-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "node", "healthcheck.js" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  url-shortener-network:
+    driver: bridge
