@@ -27,7 +27,7 @@ export const authenticateToken = async (
       logger.warn('Authentication failed - token validation', {
         action: 'auth-middleware',
         errorCode: authResult.error.code,
-        errorMessage: authResult.error.message
+        errorMessage: authResult.error.message,
       });
 
       return res.status(authResult.error.status).json({
@@ -46,16 +46,20 @@ export const authenticateToken = async (
 
     logger.debug('Authentication successful', {
       action: 'auth-middleware',
-      userId: authResult.user.userId
+      userId: authResult.user.userId,
     });
 
     next();
   } catch (error: any) {
-    logger.error('Authentication middleware error', {
-      action: 'auth-middleware',
-      errorType: error.constructor.name,
-      errorMessage: error.message
-    }, error);
+    logger.error(
+      'Authentication middleware error',
+      {
+        action: 'auth-middleware',
+        errorType: error.constructor.name,
+        errorMessage: error.message,
+      },
+      error
+    );
 
     ErrorHandler.handleError(error, res, req.requestId, 'Authentication failed');
   }
@@ -82,7 +86,7 @@ export const optionalAuth = async (
       logger.warn('Optional auth - token validation failed', {
         action: 'optional-auth-middleware',
         errorCode: authResult.error.code,
-        errorMessage: authResult.error.message
+        errorMessage: authResult.error.message,
       });
 
       return res.status(authResult.error.status).json({
@@ -96,17 +100,21 @@ export const optionalAuth = async (
       req.user = authResult.user;
       logger.debug('Optional auth - token validated successfully', {
         action: 'optional-auth-middleware',
-        userId: authResult.user.userId
+        userId: authResult.user.userId,
       });
     }
 
     next();
   } catch (error: any) {
-    logger.error('Optional auth middleware error', {
-      action: 'optional-auth-middleware',
-      errorType: error.constructor.name,
-      errorMessage: error.message
-    }, error);
+    logger.error(
+      'Optional auth middleware error',
+      {
+        action: 'optional-auth-middleware',
+        errorType: error.constructor.name,
+        errorMessage: error.message,
+      },
+      error
+    );
 
     ErrorHandler.handleError(error, res, req.requestId, 'Optional authentication failed');
   }

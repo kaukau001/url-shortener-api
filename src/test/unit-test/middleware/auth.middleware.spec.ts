@@ -12,13 +12,13 @@ jest.mock('../../../app/utils/logger.util', () => ({
     warn: jest.fn(),
     error: jest.fn(),
     debug: jest.fn(),
-    info: jest.fn()
-  }))
+    info: jest.fn(),
+  })),
 }));
 jest.mock('../../../app/utils/error-handler.util', () => ({
   ErrorHandler: {
-    handleError: jest.fn()
-  }
+    handleError: jest.fn(),
+  },
 }));
 
 describe('Auth Middleware', () => {
@@ -50,8 +50,8 @@ describe('Auth Middleware', () => {
         success: true,
         user: {
           userId: 'user-123',
-          email: 'test@example.com'
-        }
+          email: 'test@example.com',
+        },
       });
 
       // Act
@@ -66,7 +66,7 @@ describe('Auth Middleware', () => {
       expect(mockAuthService.validateToken).toHaveBeenCalledWith('valid-token');
       expect(mockRequest.user).toEqual({
         userId: 'user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
       expect(mockNext).toHaveBeenCalled();
       expect(mockResponse.status).not.toHaveBeenCalled();
@@ -98,8 +98,8 @@ describe('Auth Middleware', () => {
         error: {
           message: 'Token has expired',
           code: 'TOKEN_EXPIRED',
-          status: 401
-        }
+          status: 401,
+        },
       });
 
       // Act
@@ -115,7 +115,7 @@ describe('Auth Middleware', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: 'Token has expired',
         error: 'TOKEN_EXPIRED',
-        requestId: 'test-request-id-123'
+        requestId: 'test-request-id-123',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -124,7 +124,7 @@ describe('Auth Middleware', () => {
       // Arrange
       mockAuthService.extractToken.mockReturnValue('valid-token');
       mockAuthService.validateToken.mockResolvedValue({
-        success: true
+        success: true,
         // No user property
       });
 
@@ -189,8 +189,8 @@ describe('Auth Middleware', () => {
         success: true,
         user: {
           userId: 'user-456',
-          email: 'optional@example.com'
-        }
+          email: 'optional@example.com',
+        },
       });
 
       // Act
@@ -205,7 +205,7 @@ describe('Auth Middleware', () => {
       expect(mockAuthService.validateToken).toHaveBeenCalledWith('valid-token');
       expect(mockRequest.user).toEqual({
         userId: 'user-456',
-        email: 'optional@example.com'
+        email: 'optional@example.com',
       });
       expect(mockNext).toHaveBeenCalled();
       expect(mockResponse.status).not.toHaveBeenCalled();
@@ -219,8 +219,8 @@ describe('Auth Middleware', () => {
         error: {
           message: 'Invalid token format',
           code: 'MALFORMED_TOKEN',
-          status: 403
-        }
+          status: 403,
+        },
       });
 
       // Act
@@ -236,7 +236,7 @@ describe('Auth Middleware', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: 'Invalid token format',
         error: 'MALFORMED_TOKEN',
-        requestId: 'test-request-id-123'
+        requestId: 'test-request-id-123',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -245,7 +245,7 @@ describe('Auth Middleware', () => {
       // Arrange
       mockAuthService.extractToken.mockReturnValue('valid-token');
       mockAuthService.validateToken.mockResolvedValue({
-        success: true
+        success: true,
         // No user property
       });
 
