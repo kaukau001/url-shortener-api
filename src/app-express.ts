@@ -12,7 +12,6 @@ import { setupSimpleSwagger } from './swagger/swagger-simple.config';
 export function createExpressApp() {
     const app = express();
 
-    // Add request ID middleware first
     app.use(requestIdMiddleware);
 
     app.use(express.json());
@@ -21,15 +20,12 @@ export function createExpressApp() {
     app.use('/', healthCheckRouter);
     app.use('/auth', authRouter);
 
-    // Setup simple Swagger documentation FIRST
     setupSimpleSwagger(app);
 
-    // Test route to debug
     app.get('/test-swagger', (req, res) => {
         res.json({ message: 'Swagger test route works!' });
     });
 
-    // URL router with catch-all MUST be last
     app.use('/', urlRouter);
 
     app.use((err: any, req: any, res: express.Response, next: express.NextFunction) => {

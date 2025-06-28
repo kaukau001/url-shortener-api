@@ -22,7 +22,7 @@ model User {
 
 model ShortUrl {
   id          String    @id @default(uuid())
-  code        String    @unique @db.VarChar(6)
+  code        String    @db.VarChar(6)
   originalUrl String
   clicks      Int       @default(0)
   status      UrlStatus @default(ACTIVE)
