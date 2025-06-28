@@ -7,12 +7,12 @@ const app = createExpressApp();
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-  Logger.info(`Express application is running on port ${port}`, {
+  Logger.info(`🚀 Express application is running on port ${port}`, {
     action: 'app-startup',
     port: port.toString(),
     url: `http://localhost:${port}`
   });
-  Logger.info(`API Documentation available`, {
+  Logger.info(`📚 API Documentation available`, {
     action: 'swagger-setup',
     url: `http://localhost:${port}/docs`
   });

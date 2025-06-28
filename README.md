@@ -1,8 +1,8 @@
 # 🔗 URL Shortener API
 
-> Uma API moderna de encurtamento de URLs desenvolvida com **Node.js**, **Express**, **TypeScript** e **PostgreSQL**.
+> Uma API de encurtamento de URLs desenvolvida com **Node.js**, **Express**, **TypeScript** e **PostgreSQL**.
 
-[![CI/CD Pipeline](https://github.com/yourusername/url-shortener-api/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/url-shortener-api/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/yourusername/url-shortener-api/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/url-shortener-api/actions/workflows/ci.yml)
 [![Release](https://github.com/yourusername/url-shortener-api/actions/workflows/release.yml/badge.svg)](https://github.com/yourusername/url-shortener-api/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,9 +11,9 @@
 ## 🚀 **Funcionalidades**
 
 ### **🔐 Sistema de Autenticação**
-- **Registro de usuários** com validação completa
-- **Login seguro** com JWT tokens
-- **Middleware de autenticação** robusto
+- **Registro de usuários** com validação
+- **Login** com JWT tokens
+- **Middleware de autenticação**
 - **Tokens com expiração** configurável
 
 ### **🔗 Encurtamento de URLs**
@@ -23,12 +23,12 @@
 - **Validação de URLs** com suporte a múltiplos protocolos
 - **URLs privadas** por usuário autenticado
 
-### **📊 Recursos Avançados**
+### **📊 Recursos **
 - **Documentação interativa** com Swagger UI
-- **Logs estruturados** com request IDs
-- **Validação robusta** com class-validator
-- **Tratamento de erros** centralizado
-- **Testes automatizados** com alta cobertura
+- **Logs estruturados** com request IDs para facilitar o trace
+- **Validações de entrada** 
+- **Tratamento de erros** 
+- **Testes automatizados**
 
 ---
 
@@ -44,24 +44,12 @@ http://localhost:3000/api-docs
 http://localhost:3000/api-docs.json
 ```
 
-### **📖 Guias Complementares**
-- **[Exemplos de Uso](./API_EXAMPLES.md)** - Exemplos práticos com curl
-- **[Guia de Deploy](./DEPLOYMENT.md)** - Deploy em cloud providers  
-- **[Testes E2E](./TESTE-E2E.md)** - Testes end-to-end
-
-**💡 A documentação Swagger inclui:**
-- ✅ Teste todos os endpoints diretamente no browser
-- ✅ Esquemas completos de request/response
-- ✅ Exemplos práticos para cada endpoint
-- ✅ Autenticação integrada para endpoints protegidos
-- ✅ Documentação completa de códigos de erro
-
 ---
 
 ## 🏃‍♂️ **Como Rodar o Projeto**
 
 ### **📋 Pré-requisitos**
-- **Node.js** >= 18.0.0
+- **Node.js** = 20.0.0
 - **Docker** e **Docker Compose**
 - **Git**
 
