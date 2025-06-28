@@ -1,7 +1,7 @@
 {
   "name": "url-shortener",
   "description": "A URL shortener service built with NestJS and Prisma",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "start": "node dist/main-express.js",
