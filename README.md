@@ -275,21 +275,10 @@ Response ← Error Handler ← Validation ← Business Logic ← Data Layer
 
 Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
----
-
-## 📞 **Suporte**
-
-- 📧 **Email**: seu-email@exemplo.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/url-shortener-api/issues)
-- 📖 **Documentação**: http://localhost:3000/api-docs
-
----
 
 <div align="center">
 
 **⭐ Se este projeto te ajudou, considere dar uma estrela!**
-
-Made with ❤️ by [Seu Nome](https://github.com/yourusername)
 
 </div>
 
