@@ -1,0 +1,127 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-for-release
+
+      - name: Run security audit
+        run: npm run ci:security
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "VERSION_NUMBER=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v ${{ steps.version.outputs.VERSION }} | head -n1)
+          echo "PREVIOUS_TAG=${PREVIOUS_TAG}" >> $GITHUB_OUTPUT
+          
+          # Check if CHANGELOG.md exists and has content for this version
+          if [ -f "CHANGELOG.md" ]; then
+            # Extract changelog for current version from CHANGELOG.md
+            VERSION_NUMBER="${{ steps.version.outputs.VERSION_NUMBER }}"
+            MANUAL_CHANGELOG=$(sed -n "/## \[$VERSION_NUMBER\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+            
+            if [ ! -z "$MANUAL_CHANGELOG" ]; then
+              echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+              echo "$MANUAL_CHANGELOG" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              # Fallback to git log if no manual changelog found
+              if [ -z "$PREVIOUS_TAG" ]; then
+                CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+              else
+                CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREVIOUS_TAG}..${{ steps.version.outputs.VERSION }})
+              fi
+              echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+              echo "$CHANGELOG" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Fallback to git log if no CHANGELOG.md exists
+            if [ -z "$PREVIOUS_TAG" ]; then
+              CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            else
+              CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREVIOUS_TAG}..${{ steps.version.outputs.VERSION }})
+            fi
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: Release ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Changes in ${{ steps.version.outputs.VERSION }}
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ## Installation
+            
+            ### Docker
+            ```bash
+            docker pull url-shortener:${{ steps.version.outputs.VERSION_NUMBER }}
+            ```
+            
+            ### NPM
+            ```bash
+            git clone <repository>
+            cd url-shortener-api
+            git checkout ${{ steps.version.outputs.VERSION }}
+            npm install
+            npm run build
+            npm start
+            ```
+            
+            ## Full Changelog
+            https://github.com/${{ github.repository }}/compare/${{ steps.changelog.outputs.PREVIOUS_TAG }}...${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Build Docker image
+        run: |
+          echo "Building Docker image for release ${{ steps.version.outputs.VERSION }}"
+          docker build -t url-shortener:${{ steps.version.outputs.VERSION_NUMBER }} .
+          docker build -t url-shortener:latest .
+          echo "✅ Docker images built successfully:"
+          echo "  - url-shortener:${{ steps.version.outputs.VERSION_NUMBER }}"
+          echo "  - url-shortener:latest"

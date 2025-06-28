@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  shortUrls ShortUrl[]
+
+  @@map("users")
+}
+
+model ShortUrl {
+  id          String    @id @default(uuid())
+  code        String    @unique @db.VarChar(6)
+  originalUrl String
+  clicks      Int       @default(0)
+  status      UrlStatus @default(ACTIVE)
+  userId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("short_urls")
+}
+
+enum UrlStatus {
+  ACTIVE
+  DELETED
+}
