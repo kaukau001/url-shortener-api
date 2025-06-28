@@ -2,10 +2,9 @@ import { Express } from 'express';
 
 // Comprehensive swagger setup for URL Shortener API
 export const setupSimpleSwagger = (app: Express): void => {
-
-    // Comprehensive HTML documentation
-    app.get('/docs', (req, res) => {
-        res.send(`
+  // Comprehensive HTML documentation
+  app.get('/docs', (req, res) => {
+    res.send(`
             <!DOCTYPE html>
             <html lang="pt-BR">
             <head>
@@ -675,14 +674,14 @@ curl -X DELETE http://localhost:3000/user/urls/docs-api-v2 \\
             </body>
             </html>
         `);
-    });
-    app.get('/docs.json', (req, res) => {
-        res.json({
-            openapi: '3.0.0',
-            info: {
-                title: 'URL Shortener API',
-                version: '0.4.0',
-                description: `
+  });
+  app.get('/docs.json', (req, res) => {
+    res.json({
+      openapi: '3.0.0',
+      info: {
+        title: 'URL Shortener API',
+        version: '0.4.0',
+        description: `
 # URL Shortener API
 
 Sistema completo de encurtamento de URLs desenvolvido com Node.js, Express, TypeScript e PostgreSQL.
@@ -701,560 +700,597 @@ Acesse a URL curta e será redirecionado automaticamente.
 ### 4. Gerenciamento (Autenticado)
 Use os endpoints de usuário para listar, editar e deletar suas URLs.
                 `,
+      },
+      servers: [
+        {
+          url: 'http://localhost:3000',
+          description: 'Development server',
+        },
+      ],
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'JWT token obtido através do endpoint de login',
+          },
+        },
+        schemas: {
+          User: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', format: 'uuid', description: 'ID único do usuário' },
+              email: { type: 'string', format: 'email', description: 'Email do usuário' },
+              password: { type: 'string', format: 'email', description: 'Senha do usuário' },
+              createdAt: { type: 'string', format: 'date-time', description: 'Data de criação' },
+              updatedAt: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Data da última atualização',
+              },
+              deletedAt: { type: 'string', format: 'date-time', description: 'Data de deleção' },
             },
-            servers: [
-                {
-                    url: 'http://localhost:3000',
-                    description: 'Development server'
+          },
+          Url: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', format: 'uuid', description: 'ID único da URL' },
+              code: { type: 'string', description: 'Código da URL encurtada' },
+              originalUrl: { type: 'string', format: 'uri', description: 'URL original' },
+              shortUrl: { type: 'string', format: 'uri', description: 'URL encurtada completa' },
+              clicks: { type: 'integer', minimum: 0, description: 'Número de cliques' },
+              status: {
+                type: 'string',
+                enum: ['ACTIVE', 'DELETED'],
+                description: 'Status da URL',
+              },
+              userId: {
+                type: 'string',
+                format: 'uuid',
+                nullable: true,
+                description: 'ID do usuário proprietário (null para URLs públicas)',
+              },
+              createdAt: { type: 'string', format: 'date-time', description: 'Data de criação' },
+              updatedAt: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Data da última atualização',
+              },
+              deletedAt: { type: 'string', format: 'date-time', description: 'Data de deleção' },
+            },
+          },
+          Error: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', description: 'Mensagem de erro' },
+              error: { type: 'string', description: 'Código do erro' },
+              requestId: { type: 'string', description: 'ID da requisição para debugging' },
+            },
+          },
+          PaginationInfo: {
+            type: 'object',
+            properties: {
+              page: { type: 'integer', minimum: 1, description: 'Página atual' },
+              previousPage: {
+                type: 'integer',
+                nullable: true,
+                description: 'Página anterior, null se for primeira página',
+              },
+              totalPages: { type: 'integer', minimum: 0, description: 'Total de páginas' },
+              totalItems: { type: 'integer', minimum: 0, description: 'Total de itens' },
+              maxItemsPerPage: { type: 'integer', minimum: 1, description: 'Itens por página' },
+              lastPage: { type: 'boolean', description: 'Identifica se está na última página' },
+            },
+          },
+        },
+      },
+      paths: {
+        '/health': {
+          get: {
+            tags: ['System'],
+            summary: 'Verificar status da API',
+            description: 'Endpoint para monitoramento da saúde da API',
+            responses: {
+              '200': {
+                description: 'API funcionando corretamente',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        status: { type: 'string', example: 'ok' },
+                        timestamp: { type: 'string', format: 'date-time' },
+                        requestId: { type: 'string', format: 'uuid' },
+                      },
+                    },
+                  },
                 },
+              },
+            },
+          },
+        },
+        '/auth/register': {
+          post: {
+            tags: ['Authentication'],
+            summary: 'Registrar novo usuário',
+            description: 'Cria uma nova conta de usuário no sistema',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: ['email', 'password'],
+                    properties: {
+                      email: {
+                        type: 'string',
+                        format: 'email',
+                        description: 'Email válido do usuário',
+                        example: 'usuario@exemplo.com',
+                      },
+                      password: {
+                        type: 'string',
+                        minLength: 6,
+                        description:
+                          'Senha com no pelo menos: 6 caracteres, 1 letra maiúscula, 1 letra minúscula, 1 número e 1 símbolo ($*&@#)',
+                        example: 'Minhasenha123@',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              '201': {
+                description: 'Usuário registrado com sucesso',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        email: { type: 'string', example: 'teste@teste.com' },
+                        id: { type: 'string', format: 'uuid' },
+                      },
+                    },
+                  },
+                },
+              },
+              '400': {
+                description: 'Dados inválidos',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                    example: {
+                      message: 'Dados inválidos',
+                      errors: 'VALIDATION_ERROR',
+                    },
+                  },
+                },
+              },
+              '409': {
+                description: 'Email já cadastrado',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                    example: {
+                      message: 'Email already exists',
+                      requestId: 'req-123',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/auth/login': {
+          post: {
+            tags: ['Authentication'],
+            summary: 'Fazer login',
+            description: 'Autentica um usuário e retorna um token JWT',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: ['email', 'password'],
+                    properties: {
+                      email: {
+                        type: 'string',
+                        format: 'email',
+                        description: 'Email do usuário',
+                        example: 'usuario@exemplo.com',
+                      },
+                      password: {
+                        type: 'string',
+                        description: 'Senha do usuário',
+                        example: 'minhasenha123',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              '200': {
+                description: 'Login realizado com sucesso',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        access_token: {
+                          type: 'string',
+                          description: 'JWT token para autenticação',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              '401': {
+                description: 'Credenciais inválidas',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/shorten': {
+          post: {
+            tags: ['URLs'],
+            summary: 'Encurtar URL',
+            description: 'Cria uma URL encurtada. Pode ser usado com ou sem autenticação.',
+            security: [{}, { BearerAuth: [] }],
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: ['originalUrl'],
+                    properties: {
+                      originalUrl: {
+                        type: 'string',
+                        format: 'uri',
+                        description: 'URL para encurtar (deve começar com http/https)',
+                        example: 'https://www.exemplo.com/pagina-muito-longa',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              '201': {
+                description: 'URL encurtada com sucesso',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        message: { type: 'string', example: 'URL shortened successfully' },
+                        data: { $ref: '#/components/schemas/Url' },
+                      },
+                    },
+                  },
+                },
+              },
+              '400': {
+                description: 'URL inválida',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
+              '409': {
+                description: 'Código personalizado já existe',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/{code}': {
+          get: {
+            tags: ['URLs'],
+            summary: 'Redirecionar para URL original',
+            description: 'Redireciona para a URL original e incrementa contador de cliques',
+            parameters: [
+              {
+                name: 'code',
+                in: 'path',
+                required: true,
+                description: 'Código da URL encurtada',
+                schema: {
+                  type: 'string',
+                  example: 'abc123',
+                },
+              },
             ],
-            components: {
-                securitySchemes: {
-                    BearerAuth: {
-                        type: 'http',
-                        scheme: 'bearer',
-                        bearerFormat: 'JWT',
-                        description: 'JWT token obtido através do endpoint de login'
-                    }
+            responses: {
+              '301': {
+                description: 'Redirecionamento para URL original',
+                headers: {
+                  Location: {
+                    description: 'URL original',
+                    schema: {
+                      type: 'string',
+                      format: 'uri',
+                    },
+                  },
                 },
-                schemas: {
-                    User: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'string', format: 'uuid', description: 'ID único do usuário' },
-                            email: { type: 'string', format: 'email', description: 'Email do usuário' },
-                            password: { type: 'string', format: 'email', description: 'Senha do usuário' },
-                            createdAt: { type: 'string', format: 'date-time', description: 'Data de criação' },
-                            updatedAt: { type: 'string', format: 'date-time', description: 'Data da última atualização' },
-                            deletedAt: { type: 'string', format: 'date-time', description: 'Data de deleção' }
-                        }
-                    },
-                    Url: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'string', format: 'uuid', description: 'ID único da URL' },
-                            code: { type: 'string', description: 'Código da URL encurtada' },
-                            originalUrl: { type: 'string', format: 'uri', description: 'URL original' },
-                            shortUrl: { type: 'string', format: 'uri', description: 'URL encurtada completa' },
-                            clicks: { type: 'integer', minimum: 0, description: 'Número de cliques' },
-                            status: {
-                                type: 'string',
-                                enum: ['ACTIVE', 'DELETED'],
-                                description: 'Status da URL'
-                            },
-                            userId: {
-                                type: 'string',
-                                format: 'uuid',
-                                nullable: true,
-                                description: 'ID do usuário proprietário (null para URLs públicas)'
-                            },
-                            createdAt: { type: 'string', format: 'date-time', description: 'Data de criação' },
-                            updatedAt: { type: 'string', format: 'date-time', description: 'Data da última atualização' },
-                            deletedAt: { type: 'string', format: 'date-time', description: 'Data de deleção' },
-
-                        }
-                    },
-                    Error: {
-                        type: 'object',
-                        properties: {
-                            message: { type: 'string', description: 'Mensagem de erro' },
-                            error: { type: 'string', description: 'Código do erro' },
-                            requestId: { type: 'string', description: 'ID da requisição para debugging' },
-                        }
-                    },
-                    PaginationInfo: {
-                        type: 'object',
-                        properties: {
-                            page: { type: 'integer', minimum: 1, description: 'Página atual' },
-                            previousPage: {
-                                type: 'integer',
-                                nullable: true,
-                                description: 'Página anterior, null se for primeira página'
-                            },
-                            totalPages: { type: 'integer', minimum: 0, description: 'Total de páginas' },
-                            totalItems: { type: 'integer', minimum: 0, description: 'Total de itens' },
-                            maxItemsPerPage: { type: 'integer', minimum: 1, description: 'Itens por página' },
-                            lastPage: { type: 'boolean', description: 'Identifica se está na última página' }
-                        }
-                    }
-                }
+              },
+              '404': {
+                description: 'URL não encontrada ou expirada',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
             },
-            paths: {
-                '/health': {
-                    get: {
-                        tags: ['System'],
-                        summary: 'Verificar status da API',
-                        description: 'Endpoint para monitoramento da saúde da API',
-                        responses: {
-                            '200': {
-                                description: 'API funcionando corretamente',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                status: { type: 'string', example: 'ok' },
-                                                timestamp: { type: 'string', format: 'date-time' },
-                                                requestId: { type: 'string', format: 'uuid' },
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+          },
+        },
+        '/user/urls': {
+          get: {
+            tags: ['User Management'],
+            summary: 'Listar URLs do usuário',
+            description: 'Lista todas as URLs criadas pelo usuário com paginação e filtros',
+            security: [{ BearerAuth: [] }],
+            parameters: [
+              {
+                name: 'page',
+                in: 'query',
+                description: 'Número da página',
+                schema: { type: 'integer', minimum: 1, default: 1 },
+              },
+              {
+                name: 'limit',
+                in: 'query',
+                description: 'Itens por página',
+                schema: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+              },
+              {
+                name: 'status',
+                in: 'query',
+                description: 'Filtrar por status',
+                schema: {
+                  type: 'string',
+                  enum: ['ACTIVE', 'INACTIVE', 'EXPIRED', 'all'],
+                  default: 'all',
                 },
-                '/auth/register': {
-                    post: {
-                        tags: ['Authentication'],
-                        summary: 'Registrar novo usuário',
-                        description: 'Cria uma nova conta de usuário no sistema',
-                        requestBody: {
-                            required: true,
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        required: ['email', 'password'],
-                                        properties: {
-                                            email: {
-                                                type: 'string',
-                                                format: 'email',
-                                                description: 'Email válido do usuário',
-                                                example: 'usuario@exemplo.com'
-                                            },
-                                            password: {
-                                                type: 'string',
-                                                minLength: 6,
-                                                description: 'Senha com no pelo menos: 6 caracteres, 1 letra maiúscula, 1 letra minúscula, 1 número e 1 símbolo ($*&@#)',
-                                                example: 'Minhasenha123@'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+              },
+              {
+                name: 'search',
+                in: 'query',
+                description: 'Buscar por URL ou código',
+                schema: { type: 'string' },
+              },
+            ],
+            responses: {
+              '200': {
+                description: 'URLs listadas com sucesso',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        message: { type: 'string', example: 'URLs retrieved successfully' },
+                        data: {
+                          type: 'array',
+                          items: { $ref: '#/components/schemas/Url' },
                         },
-                        responses: {
-                            '201': {
-                                description: 'Usuário registrado com sucesso',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                email: { type: 'string', example: 'teste@teste.com' },
-                                                id: { type: 'string', format: 'uuid' },
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            '400': {
-                                description: 'Dados inválidos',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' },
-                                        example: {
-                                            message: 'Dados inválidos',
-                                            errors: 'VALIDATION_ERROR',
-                                        }
-                                    }
-                                }
-                            },
-                            '409': {
-                                description: 'Email já cadastrado',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' },
-                                        example: {
-                                            message: 'Email already exists',
-                                            requestId: 'req-123',
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                '/auth/login': {
-                    post: {
-                        tags: ['Authentication'],
-                        summary: 'Fazer login',
-                        description: 'Autentica um usuário e retorna um token JWT',
-                        requestBody: {
-                            required: true,
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        required: ['email', 'password'],
-                                        properties: {
-                                            email: {
-                                                type: 'string',
-                                                format: 'email',
-                                                description: 'Email do usuário',
-                                                example: 'usuario@exemplo.com'
-                                            },
-                                            password: {
-                                                type: 'string',
-                                                description: 'Senha do usuário',
-                                                example: 'minhasenha123'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            '200': {
-                                description: 'Login realizado com sucesso',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                access_token: {
-                                                    type: 'string',
-                                                    description: 'JWT token para autenticação',
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            '401': {
-                                description: 'Credenciais inválidas',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                '/shorten': {
-                    post: {
-                        tags: ['URLs'],
-                        summary: 'Encurtar URL',
-                        description: 'Cria uma URL encurtada. Pode ser usado com ou sem autenticação.',
-                        security: [
-                            {},
-                            { BearerAuth: [] }
-                        ],
-                        requestBody: {
-                            required: true,
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        required: ['originalUrl'],
-                                        properties: {
-                                            originalUrl: {
-                                                type: 'string',
-                                                format: 'uri',
-                                                description: 'URL para encurtar (deve começar com http/https)',
-                                                example: 'https://www.exemplo.com/pagina-muito-longa'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            '201': {
-                                description: 'URL encurtada com sucesso',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                message: { type: 'string', example: 'URL shortened successfully' },
-                                                data: { '$ref': '#/components/schemas/Url' }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            '400': {
-                                description: 'URL inválida',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            },
-                            '409': {
-                                description: 'Código personalizado já existe',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                '/{code}': {
-                    get: {
-                        tags: ['URLs'],
-                        summary: 'Redirecionar para URL original',
-                        description: 'Redireciona para a URL original e incrementa contador de cliques',
-                        parameters: [
-                            {
-                                name: 'code',
-                                in: 'path',
-                                required: true,
-                                description: 'Código da URL encurtada',
-                                schema: {
-                                    type: 'string',
-                                    example: 'abc123'
-                                }
-                            }
-                        ],
-                        responses: {
-                            '301': {
-                                description: 'Redirecionamento para URL original',
-                                headers: {
-                                    Location: {
-                                        description: 'URL original',
-                                        schema: {
-                                            type: 'string',
-                                            format: 'uri'
-                                        }
-                                    }
-                                }
-                            },
-                            '404': {
-                                description: 'URL não encontrada ou expirada',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                '/user/urls': {
-                    get: {
-                        tags: ['User Management'],
-                        summary: 'Listar URLs do usuário',
-                        description: 'Lista todas as URLs criadas pelo usuário com paginação e filtros',
-                        security: [{ BearerAuth: [] }],
-                        parameters: [
-                            {
-                                name: 'page',
-                                in: 'query',
-                                description: 'Número da página',
-                                schema: { type: 'integer', minimum: 1, default: 1 }
-                            },
-                            {
-                                name: 'limit',
-                                in: 'query',
-                                description: 'Itens por página',
-                                schema: { type: 'integer', minimum: 1, maximum: 100, default: 10 }
-                            },
-                            {
-                                name: 'status',
-                                in: 'query',
-                                description: 'Filtrar por status',
-                                schema: { type: 'string', enum: ['ACTIVE', 'INACTIVE', 'EXPIRED', 'all'], default: 'all' }
-                            },
-                            {
-                                name: 'search',
-                                in: 'query',
-                                description: 'Buscar por URL ou código',
-                                schema: { type: 'string' }
-                            }
-                        ],
-                        responses: {
-                            '200': {
-                                description: 'URLs listadas com sucesso',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                message: { type: 'string', example: 'URLs retrieved successfully' },
-                                                data: {
-                                                    type: 'array',
-                                                    items: { '$ref': '#/components/schemas/Url' }
-                                                },
-                                                pagination: { '$ref': '#/components/schemas/PaginationInfo' }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            '401': {
-                                description: 'Token ausente ou inválido',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            }
-                        }
+                        pagination: { $ref: '#/components/schemas/PaginationInfo' },
+                      },
                     },
-                    patch: {
-                        tags: ['User Management'],
-                        summary: 'Atualizar código da URL',
-                        description: 'Permite alterar o código de uma URL existente',
-                        security: [{ BearerAuth: [] }],
-                        requestBody: {
-                            required: true,
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        required: ['originalCode', 'newCode'],
-                                        properties: {
-                                            originalCode: {
-                                                type: 'string',
-                                                description: 'Código atual da URL',
-                                                example: 'abc123'
-                                            },
-                                            newCode: {
-                                                type: 'string',
-                                                minLength: 3,
-                                                maxLength: 20,
-                                                pattern: '^[a-zA-Z0-9-_]+$',
-                                                description: 'Novo código para a URL',
-                                                example: 'meunovocódigo'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            '200': {
-                                description: 'API funcionando corretamente',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                id: { type: 'string', format: 'uuid', description: 'ID único da URL' },
-                                                code: { type: 'string', description: 'Código da URL encurtada' },
-                                                originalUrl: { type: 'string', format: 'uri', description: 'URL original' },
-                                                shortUrl: { type: 'string', format: 'uri', description: 'URL encurtada completa' },
-                                                clicks: { type: 'integer', minimum: 0, description: 'Número de cliques' },
-                                                status: {
-                                                    type: 'string',
-                                                    enum: ['ACTIVE', 'DELETED'],
-                                                    description: 'Status da URL'
-                                                },
-                                                userId: {
-                                                    type: 'string',
-                                                    format: 'uuid',
-                                                    nullable: true,
-                                                    description: 'ID do usuário proprietário (null para URLs públicas)'
-                                                },
-                                                createdAt: { type: 'string', format: 'date-time', description: 'Data de criação' },
-                                                updatedAt: { type: 'string', format: 'date-time', description: 'Data da última atualização' },
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            '404': {
-                                description: 'URL não encontrada',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            },
-                            '409': {
-                                description: 'Novo código já existe',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                  },
                 },
-                '/user/urls/{code}': {
-                    delete: {
-                        tags: ['User Management'],
-                        summary: 'Deletar URL',
-                        description: 'Remove uma URL do usuário (soft delete)',
-                        security: [{ BearerAuth: [] }],
-                        parameters: [
-                            {
-                                name: 'code',
-                                in: 'path',
-                                required: true,
-                                description: 'Código da URL a ser deletada',
-                                schema: { type: 'string', example: 'abc123' }
-                            }
-                        ],
-                        responses: {
-                            '200': {
-                                description: 'API funcionando corretamente',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                id: { type: 'string', format: 'uuid', description: 'ID único da URL' },
-                                                code: { type: 'string', description: 'Código da URL encurtada' },
-                                                originalUrl: { type: 'string', format: 'uri', description: 'URL original' },
-                                                shortUrl: { type: 'string', format: 'uri', description: 'URL encurtada completa' },
-                                                clicks: { type: 'integer', minimum: 0, description: 'Número de cliques' },
-                                                status: {
-                                                    type: 'string',
-                                                    enum: ['ACTIVE', 'DELETED'],
-                                                    description: 'Status da URL'
-                                                },
-                                                userId: {
-                                                    type: 'string',
-                                                    format: 'uuid',
-                                                    nullable: true,
-                                                    description: 'ID do usuário proprietário (null para URLs públicas)'
-                                                },
-                                                createdAt: { type: 'string', format: 'date-time', description: 'Data de criação' },
-                                                updatedAt: { type: 'string', format: 'date-time', description: 'Data da última atualização' },
-                                                deletedAt: { type: 'string', format: 'date-time', description: 'Data de deleção' },
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            '404': {
-                                description: 'URL não encontrada',
-                                content: {
-                                    'application/json': {
-                                        schema: { '$ref': '#/components/schemas/Error' }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+              },
+              '401': {
+                description: 'Token ausente ou inválido',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
             },
-            tags: [
-                {
-                    name: 'System',
-                    description: 'Endpoints do sistema'
+          },
+          patch: {
+            tags: ['User Management'],
+            summary: 'Atualizar código da URL',
+            description: 'Permite alterar o código de uma URL existente',
+            security: [{ BearerAuth: [] }],
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: ['originalCode', 'newCode'],
+                    properties: {
+                      originalCode: {
+                        type: 'string',
+                        description: 'Código atual da URL',
+                        example: 'abc123',
+                      },
+                      newCode: {
+                        type: 'string',
+                        minLength: 3,
+                        maxLength: 20,
+                        pattern: '^[a-zA-Z0-9-_]+$',
+                        description: 'Novo código para a URL',
+                        example: 'meunovocódigo',
+                      },
+                    },
+                  },
                 },
-                {
-                    name: 'Authentication',
-                    description: 'Gerenciamento de autenticação'
+              },
+            },
+            responses: {
+              '200': {
+                description: 'API funcionando corretamente',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string', format: 'uuid', description: 'ID único da URL' },
+                        code: { type: 'string', description: 'Código da URL encurtada' },
+                        originalUrl: { type: 'string', format: 'uri', description: 'URL original' },
+                        shortUrl: {
+                          type: 'string',
+                          format: 'uri',
+                          description: 'URL encurtada completa',
+                        },
+                        clicks: { type: 'integer', minimum: 0, description: 'Número de cliques' },
+                        status: {
+                          type: 'string',
+                          enum: ['ACTIVE', 'DELETED'],
+                          description: 'Status da URL',
+                        },
+                        userId: {
+                          type: 'string',
+                          format: 'uuid',
+                          nullable: true,
+                          description: 'ID do usuário proprietário (null para URLs públicas)',
+                        },
+                        createdAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Data de criação',
+                        },
+                        updatedAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Data da última atualização',
+                        },
+                      },
+                    },
+                  },
                 },
-                {
-                    name: 'URLs',
-                    description: 'Operações com URLs'
+              },
+              '404': {
+                description: 'URL não encontrada',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
                 },
-                {
-                    name: 'User Management',
-                    description: 'Gerenciamento de URLs do usuário'
-                }
-            ]
-        });
+              },
+              '409': {
+                description: 'Novo código já existe',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/user/urls/{code}': {
+          delete: {
+            tags: ['User Management'],
+            summary: 'Deletar URL',
+            description: 'Remove uma URL do usuário (soft delete)',
+            security: [{ BearerAuth: [] }],
+            parameters: [
+              {
+                name: 'code',
+                in: 'path',
+                required: true,
+                description: 'Código da URL a ser deletada',
+                schema: { type: 'string', example: 'abc123' },
+              },
+            ],
+            responses: {
+              '200': {
+                description: 'API funcionando corretamente',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string', format: 'uuid', description: 'ID único da URL' },
+                        code: { type: 'string', description: 'Código da URL encurtada' },
+                        originalUrl: { type: 'string', format: 'uri', description: 'URL original' },
+                        shortUrl: {
+                          type: 'string',
+                          format: 'uri',
+                          description: 'URL encurtada completa',
+                        },
+                        clicks: { type: 'integer', minimum: 0, description: 'Número de cliques' },
+                        status: {
+                          type: 'string',
+                          enum: ['ACTIVE', 'DELETED'],
+                          description: 'Status da URL',
+                        },
+                        userId: {
+                          type: 'string',
+                          format: 'uuid',
+                          nullable: true,
+                          description: 'ID do usuário proprietário (null para URLs públicas)',
+                        },
+                        createdAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Data de criação',
+                        },
+                        updatedAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Data da última atualização',
+                        },
+                        deletedAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Data de deleção',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              '404': {
+                description: 'URL não encontrada',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Error' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      tags: [
+        {
+          name: 'System',
+          description: 'Endpoints do sistema',
+        },
+        {
+          name: 'Authentication',
+          description: 'Gerenciamento de autenticação',
+        },
+        {
+          name: 'URLs',
+          description: 'Operações com URLs',
+        },
+        {
+          name: 'User Management',
+          description: 'Gerenciamento de URLs do usuário',
+        },
+      ],
     });
+  });
 };
