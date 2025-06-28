@@ -10,39 +10,48 @@ import { Logger } from './app/utils/logger.util';
 import { setupSimpleSwagger } from './swagger/swagger-simple.config';
 
 export function createExpressApp() {
-    const app = express();
+  const app = express();
 
-    app.use(requestIdMiddleware);
+  app.use(requestIdMiddleware);
 
-    app.use(express.json());
-    app.use(cors());
+  app.use(express.json());
+  app.use(cors());
 
-    app.use('/', healthCheckRouter);
-    app.use('/auth', authRouter);
+  app.use('/', healthCheckRouter);
+  app.use('/auth', authRouter);
 
-    setupSimpleSwagger(app);
+  setupSimpleSwagger(app);
 
-    app.get('/test-swagger', (req, res) => {
-        res.json({ message: 'Swagger test route works!' });
-    });
+  app.get('/test-swagger', (req, res) => {
+    res.json({ message: 'Swagger test route works!' });
+  });
 
-    app.use('/', urlRouter);
+  app.use('/', urlRouter);
 
-    app.use((err: any, req: any, res: express.Response, next: express.NextFunction) => {
-        const requestId = req.requestId || 'no-request-id';
-        Logger.error('Unhandled error in Express app', { requestId, action: 'global-error-handler' }, err);
-        res.status(500).json({ message: 'Something went wrong!', requestId });
-    });
+  app.use((err: any, req: any, res: express.Response, next: express.NextFunction) => {
+    const requestId = req.requestId || 'no-request-id';
+    Logger.error(
+      'Unhandled error in Express app',
+      { requestId, action: 'global-error-handler' },
+      err
+    );
+    res.status(500).json({ message: 'Something went wrong!', requestId });
+  });
 
-    return app;
+  return app;
 }
 
 if (require.main === module) {
-    const app = createExpressApp();
-    const port = process.env.PORT || 3000;
+  const app = createExpressApp();
+  const port = process.env.PORT || 3000;
 
-    app.listen(port, () => {
-        Logger.info(`Application is running on port ${port}`, { action: 'app-startup', port: port.toString() });
-        Logger.info(`📚 API Documentation available at http://localhost:${port}/docs`, { action: 'swagger-setup' });
+  app.listen(port, () => {
+    Logger.info(`Application is running on port ${port}`, {
+      action: 'app-startup',
+      port: port.toString(),
     });
+    Logger.info(`📚 API Documentation available at http://localhost:${port}/docs`, {
+      action: 'swagger-setup',
+    });
+  });
 }

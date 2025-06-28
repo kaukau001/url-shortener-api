@@ -17,14 +17,14 @@ export class UserService {
     try {
       Logger.info('User registration process started', {
         action: 'auth-register',
-        email: dto.email
+        email: dto.email,
       });
 
       const existingUser = await this.userRepository.findUserByEmail(dto.email);
       if (existingUser) {
         Logger.warn('Registration failed - email already exists', {
           action: 'auth-register',
-          email: dto.email
+          email: dto.email,
         });
         throw new Error('Email already exists');
       }
@@ -38,16 +38,20 @@ export class UserService {
       Logger.info('User registration completed successfully', {
         action: 'auth-register',
         email: dto.email,
-        userId: user.id
+        userId: user.id,
       });
 
       return { id: user.id, email: user.email };
     } catch (error: any) {
-      Logger.error('User registration failed', {
-        action: 'auth-register',
-        email: dto.email,
-        errorMessage: error.message
-      }, error);
+      Logger.error(
+        'User registration failed',
+        {
+          action: 'auth-register',
+          email: dto.email,
+          errorMessage: error.message,
+        },
+        error
+      );
       throw error;
     }
   }
@@ -56,14 +60,14 @@ export class UserService {
     try {
       Logger.info('User login process started', {
         action: 'auth-login',
-        email: dto.email
+        email: dto.email,
       });
 
       const user = await this.userRepository.findUserByEmail(dto.email);
       if (!user || !(await bcrypt.compare(dto.password, user.password))) {
         Logger.warn('Login failed - invalid credentials', {
           action: 'auth-login',
-          email: dto.email
+          email: dto.email,
         });
         return null;
       }
@@ -72,7 +76,7 @@ export class UserService {
       if (!jwtSecret) {
         Logger.error('JWT_SECRET is not defined in environment', {
           action: 'auth-login',
-          email: dto.email
+          email: dto.email,
         });
         throw new Error('JWT_SECRET não está definido no .env');
       }
@@ -90,18 +94,22 @@ export class UserService {
       Logger.info('User login completed successfully', {
         action: 'auth-login',
         email: dto.email,
-        userId: user.id
+        userId: user.id,
       });
 
       return {
         access_token: token,
       };
     } catch (error: any) {
-      Logger.error('User login failed', {
-        action: 'auth-login',
-        email: dto.email,
-        errorMessage: error.message
-      }, error);
+      Logger.error(
+        'User login failed',
+        {
+          action: 'auth-login',
+          email: dto.email,
+          errorMessage: error.message,
+        },
+        error
+      );
       throw error;
     }
   }
