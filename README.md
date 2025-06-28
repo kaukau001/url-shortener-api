@@ -1,9 +1,6 @@
 # 🔗 URL Shortener API
 
 > Uma API de encurtamento de URLs desenvolvida com **Node.js**, **Express**, **TypeScript** e **PostgreSQL**.
-
-[![CI Pipeline](https://github.com/yourusername/url-shortener-api/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/url-shortener-api/actions/workflows/ci.yml)
-[![Release](https://github.com/yourusername/url-shortener-api/actions/workflows/release.yml/badge.svg)](https://github.com/yourusername/url-shortener-api/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -20,7 +17,7 @@
 - **Criação de URLs curtas** com códigos personalizados
 - **Redirecionamento automático** para URLs originais
 - **Gerenciamento completo** - criar, listar, atualizar, deletar
-- **Validação de URLs** com suporte a múltiplos protocolos
+- **Validação de URLs**
 - **URLs privadas** por usuário autenticado
 
 ### **📊 Recursos **
@@ -260,6 +257,31 @@ Response ← Error Handler ← Validation ← Business Logic ← Data Layer
 - **Containerization**: Docker
 
 ---
+## Features futuras
+- Criar uma url customizada sem precisar passar pelo processo de criar e depois atualizar.
+- Gerenciamento de usuário (excluir usuário, atualizar informações de email e senha)
+- Possibilidade de criar urls com data de expiração
+
+---
+## Features futuras
+- Criar uma url customizada sem precisar passar pelo processo de criar e depois atualizar.
+- Gerenciamento de usuário (excluir usuário, atualizar informações de email e senha)
+- Possibilidade de criar urls com data de expiração
+
+---
+## Mudanças para escalar horizontalmente
+- Cache distribuído com Redis para URLs mais acessadas
+- Load balancer para múltiplas instâncias
+- Monitoramento de traces e dashboards no Datadog
+- Segregação em microsserviços
+- Utilizar testes de carga para estimar melhor os recursos
+
+Os maiores desafios seriam:
+- Gerenciar sessões entre múltiplas instâncias (JWT ajuda nisso)
+- Manter a idempotência
+- Pool de conexões do banco
+- Logs centralizados
+- Deploy coordenado sem downtime e em faixas de horário de baixa intensidade
 
 ## 🤝 **Contribuindo**
 
